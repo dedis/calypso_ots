@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
+	"github.com/calypso-demo/ots/otsclient/util"
 	"gopkg.in/dedis/onet.v1"
 	"gopkg.in/dedis/onet.v1/crypto"
 )

@@ -3,7 +3,7 @@ package service
 import (
 	"math/rand"
 
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
+	"github.com/calypso-demo/ots/otsclient/util"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"
 	"gopkg.in/dedis/onet.v1"

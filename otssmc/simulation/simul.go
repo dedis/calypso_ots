@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/calypso-demo/filesharing/ots/onchain-secrets"
+	_ "github.com/calypso-demo/ots/onchain-secrets"
 	"gopkg.in/dedis/onet.v1/simul"
 )
 

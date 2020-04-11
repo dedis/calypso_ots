@@ -5,8 +5,8 @@ import (
 	"flag"
 	"os"
 
-	otsclient "github.com/calypso-demo/filesharing/ots/otsclient"
-	util "github.com/calypso-demo/filesharing/ots/otsclient/util"
+	otsclient "github.com/calypso-demo/ots/otsclient"
+	util "github.com/calypso-demo/ots/otsclient/util"
 	"gopkg.in/dedis/crypto.v0/abstract"
 	"gopkg.in/dedis/crypto.v0/ed25519"
 	"gopkg.in/dedis/crypto.v0/random"

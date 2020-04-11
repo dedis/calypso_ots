@@ -7,7 +7,7 @@ This holds the messages used to communicate with the service over the network.
 import (
 	"fmt"
 
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
+	"github.com/calypso-demo/ots/otsclient/util"
 	uuid "github.com/satori/go.uuid"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"

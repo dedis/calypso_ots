@@ -8,7 +8,7 @@ import (
 	"gopkg.in/dedis/onet.v1/log"
 	"gopkg.in/dedis/onet.v1/network"
 
-	"github.com/calypso-demo/filesharing/ots/protocol"
+	"github.com/calypso-demo/ots/protocol"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/dedis/crypto.v0/abstract"
 	"gopkg.in/dedis/crypto.v0/config"

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
-	"github.com/calypso-demo/filesharing/ots/otssmc/protocol"
+	"github.com/calypso-demo/ots/otsclient/util"
+	"github.com/calypso-demo/ots/otssmc/protocol"
 	"gopkg.in/dedis/onet.v1"
 	"gopkg.in/dedis/onet.v1/crypto"
 	"gopkg.in/dedis/onet.v1/log"

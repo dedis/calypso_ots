@@ -4,8 +4,8 @@ import (
 	"crypto/sha256"
 	"errors"
 
-	ocs "github.com/calypso-demo/filesharing/ots/onchain-secrets"
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
+	ocs "github.com/calypso-demo/ots/onchain-secrets"
+	"github.com/calypso-demo/ots/otsclient/util"
 
 	"gopkg.in/dedis/crypto.v0/abstract"
 	"gopkg.in/dedis/crypto.v0/cosi"

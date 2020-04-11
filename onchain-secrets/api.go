@@ -11,8 +11,8 @@ This part of the service runs on the client or the app.
 import (
 	"errors"
 
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
-	"github.com/calypso-demo/filesharing/ots/protocol"
+	"github.com/calypso-demo/ots/otsclient/util"
+	"github.com/calypso-demo/ots/protocol"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"
 	"gopkg.in/dedis/crypto.v0/share/pvss"

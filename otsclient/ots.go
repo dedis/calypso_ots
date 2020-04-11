@@ -7,8 +7,9 @@ import (
 	"errors"
 	"os"
 
-	ocs "github.com/calypso-demo/filesharing/ots/onchain-secrets"
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
+	ocs "github.com/calypso-demo/ots/onchain-secrets"
+	"github.com/calypso-demo/ots/otsclient/util"
+	otssmc "github.com/calypso-demo/ots/otssmc/service"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/share/pvss"
 	"gopkg.in/dedis/onet.v1"

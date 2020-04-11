@@ -10,7 +10,7 @@ import (
 
 	"bytes"
 
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
+	"github.com/calypso-demo/ots/otsclient/util"
 	"gopkg.in/dedis/cothority.v1/messaging"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/onet.v1"
@@ -23,7 +23,7 @@ import (
 
 	"math/rand"
 
-	"github.com/calypso-demo/filesharing/ots/protocol"
+	"github.com/calypso-demo/ots/protocol"
 	"gopkg.in/dedis/crypto.v0/share"
 	"gopkg.in/dedis/crypto.v0/share/pvss"
 )

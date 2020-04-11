@@ -5,11 +5,11 @@ import (
 	"errors"
 
 	"github.com/BurntSushi/toml"
-	ocs "github.com/calypso-demo/filesharing/ots/onchain-secrets"
+	ocs "github.com/calypso-demo/ots/onchain-secrets"
 
-	"github.com/calypso-demo/filesharing/ots/otsclient"
-	"github.com/calypso-demo/filesharing/ots/otsclient/util"
-	"github.com/calypso-demo/filesharing/ots/otssmc/protocol"
+	"github.com/calypso-demo/ots/otsclient"
+	"github.com/calypso-demo/ots/otsclient/util"
+	"github.com/calypso-demo/ots/otssmc/protocol"
 	"gopkg.in/dedis/crypto.v0/abstract"
 	"gopkg.in/dedis/crypto.v0/ed25519"
 	"gopkg.in/dedis/crypto.v0/random"

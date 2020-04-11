@@ -5,7 +5,7 @@ import (
 
 	// We need to include the service so it is started.
 
-	//_ "github.com/calypso-demo/filesharing/ots/service"
+	//_ "github.com/calypso-demo/ots/service"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"
