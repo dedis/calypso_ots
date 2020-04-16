@@ -11,11 +11,10 @@ This part of the service runs on the client or the app.
 import (
 	"errors"
 
-	"github.com/calypso-demo/ots/otsclient/util"
+	"github.com/calypso-demo/ots"
 	"github.com/calypso-demo/ots/protocol"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"
-	"gopkg.in/dedis/crypto.v0/share/pvss"
 	"gopkg.in/dedis/onet.v1"
 	"gopkg.in/dedis/onet.v1/crypto"
 	"gopkg.in/dedis/onet.v1/network"
@@ -62,38 +61,17 @@ func (c *Client) CreateSkipchain(r *onet.Roster) (ocsurl *SkipChainURL,
 	return
 }
 
-func (c *Client) WriteTxnRequest(ocsurl *SkipChainURL, G abstract.Point, scPubKeys []abstract.Point, encShares []*pvss.PubVerShare, encProofs []abstract.Point, hashEnc []byte, readList []abstract.Point, wrPrivKey abstract.Scalar) (sb *skipchain.SkipBlock, cerr onet.ClientError) {
-	wtd := &util.WriteTxnData{
-		G:            G,
-		SCPublicKeys: scPubKeys,
-		EncShares:    encShares,
-		EncProofs:    encProofs,
-		HashEnc:      hashEnc,
-		ReaderPk:     readList[0],
-	}
-	wr := &WriteTxnRequest{
-		WriteTxn: &DataOCSWriteTxn{
-			Data: wtd,
-		},
-		Readers: &DataOCSReaders{
-			ID:      []byte{},
-			Readers: readList,
-		},
-		OCS: ocsurl.Genesis,
-	}
-	msg, err := network.Marshal(wtd)
+func (c *Client) OTSWriteRequest(ocsurl *SkipChainURL, wr *OTSWriteRequest, wrPrivKey abstract.Scalar) (sb *skipchain.SkipBlock, cerr onet.ClientError) {
+	msg, err := network.Marshal(wr.Write.Data)
 	if err != nil {
 		return nil, onet.NewClientErrorCode(ErrorParameter, err.Error())
 	}
-
-	// log.Info("Write transaction size is:", len(msg))
-	sig, err := util.SignMessage(msg, wrPrivKey)
+	sig, err := ots.SignMessage(msg, wrPrivKey)
 	if err != nil {
 		return nil, onet.NewClientErrorCode(ErrorParameter, err.Error())
 	}
-
-	wr.WriteTxn.Signature = &sig
-	reply := &WriteTxnReply{}
+	wr.Write.Signature = &sig
+	reply := &OTSWriteReply{}
 	cerr = c.SendProtobuf(ocsurl.Roster.List[0], wr, reply)
 	sb = reply.SB
 	return
@@ -149,7 +127,7 @@ func (c *Client) WriteRequest(ocsurl *SkipChainURL, encData []byte, symKey []byt
 	return
 }
 
-func (c *Client) ReadTxnRequest(ocsurl *SkipChainURL, dataID skipchain.SkipBlockID, reader abstract.Scalar) (sb *skipchain.SkipBlock, cerr onet.ClientError) {
+func (c *Client) OTSReadRequest(ocsurl *SkipChainURL, dataID skipchain.SkipBlockID, reader abstract.Scalar) (sb *skipchain.SkipBlock, cerr onet.ClientError) {
 	return c.ReadRequest(ocsurl, dataID, reader)
 }
 
@@ -175,7 +153,6 @@ func (c *Client) ReadRequest(ocsurl *SkipChainURL, dataID skipchain.SkipBlockID,
 	if err != nil {
 		return nil, onet.NewClientErrorCode(ErrorParameter, err.Error())
 	}
-
 	request := &ReadRequest{
 		Read: &DataOCSRead{
 			DataID:    dataID,
@@ -226,24 +203,22 @@ func (c *Client) DecryptKeyRequest(ocsurl *SkipChainURL, readID skipchain.SkipBl
 	return
 }
 
-func (c *Client) GetWriteTxn(ocsurl *SkipChainURL, dataID skipchain.SkipBlockID) (sb *skipchain.SkipBlock, writeTxn *DataOCSWriteTxn, cerr onet.ClientError) {
+func (c *Client) GetOTSWrite(ocsurl *SkipChainURL, dataID skipchain.SkipBlockID) (sb *skipchain.SkipBlock, otsWrite *DataOTSWrite, cerr onet.ClientError) {
 	cl := skipchain.NewClient()
 	sb, cerr = cl.GetSingleBlock(ocsurl.Roster, dataID)
 	if cerr != nil {
 		return nil, nil, cerr
 	}
-
 	_, ocsDataI, err := network.Unmarshal(sb.Data)
 	if err != nil {
 		return nil, nil, onet.NewClientError(err)
 	}
-
 	ocsData, ok := ocsDataI.(*DataOCS)
-	writeTxn = ocsData.WriteTxn
-	if !ok || writeTxn == nil {
+	otsWrite = ocsData.OTSWrite
+	if !ok || otsWrite == nil {
 		return nil, nil, onet.NewClientError(errors.New("not correct type of data"))
 	}
-	return sb, writeTxn, nil
+	return sb, otsWrite, nil
 }
 
 // GetData returns the encrypted data from a write-request given its id. It requests

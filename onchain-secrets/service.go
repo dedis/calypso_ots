@@ -10,7 +10,7 @@ import (
 
 	"bytes"
 
-	"github.com/calypso-demo/ots/otsclient/util"
+	//"github.com/calypso-demo/ots/otsclient/util"
 	"gopkg.in/dedis/cothority.v1/messaging"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/onet.v1"
@@ -23,6 +23,7 @@ import (
 
 	"math/rand"
 
+	"github.com/calypso-demo/ots"
 	"github.com/calypso-demo/ots/protocol"
 	"gopkg.in/dedis/crypto.v0/share"
 	"gopkg.in/dedis/crypto.v0/share/pvss"
@@ -161,12 +162,10 @@ func (s *Service) WriteRequest(req *WriteRequest) (reply *WriteReply,
 	return
 }
 
-func (s *Service) WriteTxnRequest(req *WriteTxnRequest) (reply *WriteTxnReply, cerr onet.ClientError) {
-	reply = &WriteTxnReply{}
+func (s *Service) OTSWriteRequest(req *OTSWriteRequest) (reply *OTSWriteReply, cerr onet.ClientError) {
+	reply = &OTSWriteReply{}
 	s.saveMutex.Lock()
-	t := time.Now()
 	ocsBunch := s.Storage.OCSs.GetBunch(req.OCS)
-	log.Print("GetBunch:", time.Now().Sub(t))
 	s.saveMutex.Unlock()
 	if ocsBunch == nil {
 		return nil, onet.NewClientErrorCode(ErrorParameter, "didn't find that bunch")
@@ -174,16 +173,14 @@ func (s *Service) WriteTxnRequest(req *WriteTxnRequest) (reply *WriteTxnReply, c
 
 	block := ocsBunch.GetByID(req.OCS)
 	if block == nil {
-		log.Error("not")
 		return nil, onet.NewClientErrorCode(ErrorParameter, "Didn't find block-skipchain")
 	}
 	data := &DataOCS{
-		WriteTxn: req.WriteTxn,
+		OTSWrite: req.Write,
 		Readers:  req.Readers,
 	}
 
 	i := 1
-	t = time.Now()
 	for {
 		reply.SB, cerr = s.BunchAddBlock(ocsBunch, block.Roster, data)
 		if cerr == nil {
@@ -197,21 +194,16 @@ func (s *Service) WriteTxnRequest(req *WriteTxnRequest) (reply *WriteTxnReply, c
 			return nil, cerr
 		}
 	}
-	log.Print("BunchAddBlock:", time.Now().Sub(t))
-
 	log.Lvl2("Writing a key to the skipchain")
 	if cerr != nil {
 		log.Error(cerr)
 		return
 	}
-
-	t = time.Now()
 	replies, err := s.propagateOCS(ocsBunch.Latest.Roster, reply.SB, propagationTimeout)
 	if err != nil {
 		cerr = onet.NewClientErrorCode(ErrorProtocol, err.Error())
 		return
 	}
-	log.Print("Propagate:", time.Now().Sub(t))
 	if replies != len(ocsBunch.Latest.Roster.List) {
 		log.Warn("Got only", replies, "replies for write-propagation")
 	}
@@ -277,9 +269,7 @@ func (s *Service) GetReadRequests(req *GetReadRequests) (reply *GetReadRequestsR
 	var doc skipchain.SkipBlockID
 	if req.Count == 0 {
 		dataOCS := NewDataOCS(current.Data)
-		// OTS Edit
-		//if dataOCS == nil || dataOCS.Write == nil {
-		if dataOCS == nil || dataOCS.WriteTxn == nil {
+		if dataOCS == nil || dataOCS.OTSWrite == nil {
 			log.Error("Didn't find this writeID")
 			return nil, onet.NewClientErrorCode(ErrorParameter,
 				"id is not a writer-block")
@@ -497,62 +487,43 @@ func (s *Service) verifyOCS(newID []byte, sb *skipchain.SkipBlock) bool {
 		log.Lvl3("No ocs-data in genesis-block")
 		return false
 	}
-
-	if writeTxn := dataOCS.WriteTxn; writeTxn != nil {
-		//if write := dataOCS.Write; write != nil {
+	if write := dataOCS.OTSWrite; write != nil {
 		// Write has to check if the signature comes from a valid writer.
 		// Write also has to check if the PVSS shares are valid
-		// cpuSysStart, cpuUserStart := util.GetRTime()
-		// wallStart := time.Now()
-		h, err := util.CreatePointH(network.Suite, writeTxn.Data.ReaderPk)
+		h, err := ots.CreatePointH(network.Suite, write.Data.ReaderPk)
 		if err != nil {
 			log.Errorf("Couldn't create point H: %v", err.Error())
 			return false
 		}
-
-		_, validShares, err := pvss.VerifyEncShareBatch(network.Suite, h, writeTxn.Data.SCPublicKeys, writeTxn.Data.EncProofs, writeTxn.Data.EncShares)
+		_, validShares, err := pvss.VerifyEncShareBatch(network.Suite, h, write.Data.SCPublicKeys, write.Data.EncProofs, write.Data.EncShares)
 		if err != nil {
 			log.Errorf("Could not verify encrypted shares: %v", err.Error())
 			return false
-		} else if len(validShares) < len(writeTxn.Data.EncShares) {
+		} else if len(validShares) < len(write.Data.EncShares) {
 			log.Errorf("Could not verify encrypted shares")
 			return false
 		}
-
-		// wallTime := float64(time.Since(wallStart)) / 1.0e9
-		// cpuSysTime, cpuUserTime := util.GetDiffRTime(cpuSysStart, cpuUserStart)
-		// log.Info("VerifyEncShareBatch:", wallTime, cpuSysTime, cpuUserTime)
-		// log.Lvl3("No writing-checking yet")
 		return true
 	} else if read := dataOCS.Read; read != nil {
 		// Read has to check that it's a valid reader
 		log.Lvl3("It's a read")
 		// Search file
-		var writeTxnBlock *DataOCSWriteTxn
-		//var writeBlock *DataOCSWrite
+		var write *DataOTSWrite
 		var readersBlock *DataOCSReaders
 		for _, sb := range s.Storage.OCSs.GetBunch(genesis.Hash).SkipBlocks {
 			wd := NewDataOCS(sb.Data)
-			if wd != nil && wd.WriteTxn != nil {
-				//if wd != nil && wd.Write != nil {
+			if wd != nil && wd.OTSWrite != nil {
 				if bytes.Compare(sb.Hash, read.DataID) == 0 {
-					writeTxnBlock = wd.WriteTxn
-					//writeBlock = wd.Write
+					write = wd.OTSWrite
 					readersBlock = wd.Readers
 					break
 				}
 			}
 		}
-		if writeTxnBlock == nil {
-			// if writeBlock == nil {
+		if write == nil {
 			log.Lvl3("Didn't find file")
 			return false
 		}
-		// if len(writeTxnBlock.Readers) > 0 {
-		// 	// if len(writeBlock.Readers) > 0 {
-		// 	log.Error("Reader-ids not yet supported")
-		// 	return false
-		// }
 		if readersBlock == nil {
 			log.Error("Found empty readers-block")
 			return false
@@ -629,9 +600,8 @@ func newService(c *onet.Context) onet.Service {
 			Shared: map[string]*protocol.SharedSecret{},
 		},
 	}
-	// OTS Edit
 	if err := s.RegisterHandlers(s.CreateSkipchains,
-		s.WriteRequest, s.WriteTxnRequest, s.ReadRequest, s.GetReadRequests,
+		s.WriteRequest, s.OTSWriteRequest, s.ReadRequest, s.GetReadRequests,
 		s.DecryptKeyRequest, s.SharedPublic,
 		s.GetBunches); err != nil {
 		log.ErrFatal(err, "Couldn't register messages")

@@ -7,10 +7,10 @@ This holds the messages used to communicate with the service over the network.
 import (
 	"fmt"
 
-	"github.com/calypso-demo/ots/otsclient/util"
 	uuid "github.com/satori/go.uuid"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"
+	"gopkg.in/dedis/crypto.v0/share/pvss"
 	"gopkg.in/dedis/onet.v1"
 	"gopkg.in/dedis/onet.v1/crypto"
 	"gopkg.in/dedis/onet.v1/log"
@@ -21,11 +21,11 @@ import (
 // OTS Edit
 func init() {
 	network.RegisterMessages(
-		DataOCS{}, DataOCSWrite{}, DataOCSRead{}, DataOCSReaders{}, DataOCSWriteTxn{}, util.WriteTxnData{},
+		DataOCS{}, DataOCSWrite{}, DataOCSRead{}, DataOCSReaders{}, DataOTSWrite{}, OTSWrite{},
 		CreateSkipchainsRequest{}, CreateSkipchainsReply{},
 		WriteRequest{}, WriteReply{},
 		ReadRequest{}, ReadReply{},
-		WriteTxnRequest{}, WriteTxnReply{},
+		OTSWriteRequest{}, OTSWriteReply{},
 		SharedPublicRequest{}, SharedPublicReply{},
 		DecryptKeyRequest{}, DecryptKeyReply{},
 		GetReadRequests{}, GetReadRequestsReply{})
@@ -79,7 +79,7 @@ type DataOCS struct {
 	Write    *DataOCSWrite
 	Read     *DataOCSRead
 	Readers  *DataOCSReaders
-	WriteTxn *DataOCSWriteTxn
+	OTSWrite *DataOTSWrite
 }
 
 // NewDataOCS returns a pointer to a DataOCS structure created from
@@ -118,8 +118,17 @@ func (dw *DataOCS) String() string {
 }
 
 // OTS Edit
-type DataOCSWriteTxn struct {
-	Data      *util.WriteTxnData
+type OTSWrite struct {
+	G            abstract.Point
+	SCPublicKeys []abstract.Point
+	EncShares    []*pvss.PubVerShare
+	EncProofs    []abstract.Point
+	HashEnc      []byte
+	ReaderPk     abstract.Point
+}
+
+type DataOTSWrite struct {
+	Data      *OTSWrite
 	Signature *crypto.SchnorrSig
 }
 
@@ -175,14 +184,14 @@ type CreateSkipchainsReply struct {
 }
 
 // OTS Edit
-type WriteTxnRequest struct {
-	WriteTxn *DataOCSWriteTxn
-	Readers  *DataOCSReaders
-	OCS      skipchain.SkipBlockID
+type OTSWriteRequest struct {
+	Write   *DataOTSWrite
+	Readers *DataOCSReaders
+	OCS     skipchain.SkipBlockID
 }
 
 // OTS Edit
-type WriteTxnReply struct {
+type OTSWriteReply struct {
 	SB *skipchain.SkipBlock
 }
 
