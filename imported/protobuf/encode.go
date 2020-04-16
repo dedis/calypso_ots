@@ -49,10 +49,6 @@ func Encode(structPtr interface{}) (bytes []byte, err error) {
 		return nil, nil
 	}
 
-	if bu, ok := structPtr.(encoding.BinaryMarshaler); ok {
-		return bu.MarshalBinary()
-	}
-
 	en := encoder{}
 	val := reflect.ValueOf(structPtr)
 	if val.Kind() != reflect.Ptr {

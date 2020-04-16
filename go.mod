@@ -14,6 +14,7 @@ require (
 	github.com/montanaflynn/stats v0.6.3 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v2.20.3+incompatible // indirect
+	github.com/stretchr/testify v1.3.0
 	go.etcd.io/bbolt v1.3.4 // indirect
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71 // indirect
 	gopkg.in/dedis/cothority.v1 v1.0.0-20180112132810-9daa49171eb7
