@@ -14,16 +14,19 @@ import (
 )
 
 func TestSimple(t *testing.T) {
-	numServers := 7
+	numServers := 10
 	local := onet.NewTCPTest()
 	_, roster, _ := local.GenTree(numServers, true)
 	defer local.CloseAll()
 	require.NotNil(t, roster)
 
+	log.Infof("Initializing access-control and secret-management cothorities with %d nodes", numServers)
+	log.Info("List of nodes:", roster.List)
 	scurl, err := CreateSkipchain(roster)
 	require.NoError(t, err)
 	require.NotNil(t, scurl)
 
+	log.Info("======== Write (Wanda) ========")
 	scPubKeys := roster.Publics()
 	dataPVSS := DataPVSS{
 		Suite:        ed25519.NewAES128SHA256Ed25519(false),
@@ -40,19 +43,22 @@ func TestSimple(t *testing.T) {
 	err = SetupPVSS(&dataPVSS, pubKey)
 	require.NoError(t, err)
 
-	mesgSize := 1024 * 1024
-	mesg := make([]byte, mesgSize)
-	for i := 0; i < mesgSize; i++ {
-		mesg[i] = 'w'
-	}
-	encMesg, hashEnc, err := EncryptMessage(&dataPVSS, mesg)
+	//mesgSize := 1024 * 1024
+	//mesg := make([]byte, mesgSize)
+	//for i := 0; i < mesgSize; i++ {
+	//mesg[i] = 'w'
+	//}
+	mesg := "CALYPSO-OTS DEMO MESSAGE!"
+	log.Infof("[Wanda] Plaintext message is: %s", mesg)
+	encMesg, hashEnc, err := EncryptMessage(&dataPVSS, []byte(mesg))
 	require.NoError(t, err)
 
-	//// Creating write transaction
+	// Creating write transaction
 	writeSB, err := WriteRequest(scurl, &dataPVSS, hashEnc, pubKey, wrPrivKey)
 	require.NoError(t, err)
 
-	// Bob gets it from Alice
+	// Ron gets it from Wanda
+	log.Info("======== Read (Ron) ========")
 	writeID := writeSB.Hash
 	// Get write transaction from skipchain
 	writeSB, writeData, sig, err := GetWriteSB(scurl, writeID)
@@ -63,6 +69,7 @@ func TestSimple(t *testing.T) {
 
 	validHash := VerifyEncMesg(writeData, encMesg)
 	require.Equal(t, validHash, 0)
+	//log.Infof("[Ron] Encrypted message is valid")
 
 	// Creating read transaction
 	readSB, err := ReadRequest(scurl, writeID, privKey)
@@ -72,7 +79,7 @@ func TestSimple(t *testing.T) {
 	require.NoError(t, err)
 
 	acPubKeys := readSB.Roster.Publics()
-	// Bob obtains the SC public keys from T_W
+	// Ron obtains the SC public keys from T_W
 	scPubKeys = writeData.SCPublicKeys
 	decShares, err := GetDecryptedShares(roster, updWriteSB, readSB.SkipBlockFix, acPubKeys, scPubKeys, privKey, readSB.Index)
 	require.NoError(t, err)
@@ -87,15 +94,19 @@ func TestSimple(t *testing.T) {
 		validDecShares = append(validDecShares, decShares[i])
 	}
 
-	// Normally Bob doesn't have dataPVSS but we are
-	// using it only for PVSS parameters for simplicity
+	// For simplicity, we are using the data structure ``dataPVSS'' on Ron's
+	// side as well. Note that the fields that are accessed for the
+	// RecoverSecret call are public information. We assume Wanda and Ron
+	// would have already agreed on these parameters beforehand.
 	recSecret, err := pvss.RecoverSecret(dataPVSS.Suite, writeData.G, validKeys, validEncShares, validDecShares, dataPVSS.Threshold, dataPVSS.NumTrustee)
 	require.NoError(t, err)
 	require.NotNil(t, recSecret)
 
 	recMesg, err := DecryptMessage(recSecret, encMesg)
 	require.NoError(t, err)
-	require.Equal(t, bytes.Compare(recMesg, mesg), 0)
+	//require.Equal(t, bytes.Compare(recMesg, mesg), 0)
+	log.Infof("[Ron] Recovered message is %s", string(recMesg))
+	require.Equal(t, bytes.Compare(recMesg, []byte(mesg)), 0)
 }
 
 func TestMain(m *testing.M) {

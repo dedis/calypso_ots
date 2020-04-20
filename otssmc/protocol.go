@@ -35,18 +35,15 @@ type OTSDecrypt struct {
 }
 
 func NewProtocol(n *onet.TreeNodeInstance) (onet.ProtocolInstance, error) {
-
 	otsDecrypt := &OTSDecrypt{
 		TreeNodeInstance: n,
 		DecShares:        make(chan []*DecryptedShare),
 	}
 	err := otsDecrypt.RegisterChannelLength(&otsDecrypt.ChannelAnnounce, 65536)
-
 	if err != nil {
 		return nil, errors.New("couldn't register announcement-channel: " + err.Error())
 	}
 	err = otsDecrypt.RegisterChannelLength(&otsDecrypt.ChannelReply, 65536)
-
 	if err != nil {
 		return nil, errors.New("couldn't register reply-channel: " + err.Error())
 	}
@@ -61,7 +58,6 @@ func (p *OTSDecrypt) Start() error {
 			Signature:  p.Signature,
 			RootIndex:  p.RootIndex,
 		})
-
 		if err != nil {
 			log.Error(p.Info(), "failed to send to", c.Name(), err)
 			return err
@@ -78,9 +74,6 @@ func (p *OTSDecrypt) Dispatch() error {
 			return sigErr
 		}
 		idx := p.Index()
-		if idx == announcement.RootIndex {
-			idx = 0
-		}
 		h, err := ots.CreatePointH(network.Suite, writeData.ReaderPk)
 		if err != nil {
 			log.Error(p.Info(), "Failed to generate point h", p.Name(), err)

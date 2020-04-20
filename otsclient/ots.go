@@ -13,6 +13,7 @@ import (
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/share/pvss"
 	"gopkg.in/dedis/onet.v1"
+	"gopkg.in/dedis/onet.v1/log"
 	"gopkg.in/dedis/onet.v1/network"
 
 	"gopkg.in/dedis/crypto.v0/abstract"
@@ -185,6 +186,8 @@ func CreateSkipchain(roster *onet.Roster) (*ocs.SkipChainURL, error) {
 func VerifyEncMesg(writeData *ocs.OTSWrite, encMesg []byte) int {
 	tmpHash := sha256.Sum256(encMesg)
 	cmptHash := tmpHash[:]
+	log.Infof("[Ron] Hash of the encrypted message (computed): %x", cmptHash)
+	log.Infof("[Ron] Hash of the encrypted message (as stored in the write txn): %x", writeData.HashEnc)
 	return bytes.Compare(cmptHash, writeData.HashEnc)
 }
 
@@ -195,6 +198,7 @@ func DecryptMessage(recSecret abstract.Point, encMesg []byte) ([]byte, error) {
 	}
 	tempSymKey := sha256.Sum256(g_s)
 	symKey := tempSymKey[:]
+	log.Infof("[Ron] Recovered symmetric key is %x", symKey)
 	cipher := network.Suite.Cipher(symKey)
 	decMesg, err := cipher.Open(nil, encMesg)
 	return decMesg, err
@@ -207,10 +211,12 @@ func EncryptMessage(dp *DataPVSS, mesg []byte) ([]byte, []byte, error) {
 	}
 	tempSymKey := sha256.Sum256(g_s)
 	symKey := tempSymKey[:]
+	log.Infof("[Wanda] Encrypting message with symmetric key %x", symKey)
 	cipher := network.Suite.Cipher(symKey)
 	encMesg := cipher.Seal(nil, mesg)
 	tempHash := sha256.Sum256(encMesg)
 	hashEnc := tempHash[:]
+	log.Infof("[Wanda] Hash of the encrypted message is %x", hashEnc)
 	return encMesg, hashEnc, nil
 }
 

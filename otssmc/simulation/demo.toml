@@ -1,9 +1,9 @@
 Simulation = "OTSDemo"
-Servers = 10
+Servers = 13
 Rounds = 2
 RunWait = 4000
 Delay = 100
 Bandwidth = 100
 
 Hosts, BF
-10,9
+13,12

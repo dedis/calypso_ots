@@ -1,8 +1,6 @@
 package otssmc
 
 import (
-	"math/rand"
-
 	"github.com/calypso-demo/ots"
 	"gopkg.in/dedis/cothority.v1/skipchain"
 	"gopkg.in/dedis/crypto.v0/abstract"
@@ -33,17 +31,15 @@ func (c *Client) OTSDecrypt(r *onet.Roster, writeSBF *skipchain.SkipBlockFix, re
 	if err != nil {
 		return nil, onet.NewClientErrorCode(ErrorParse, err.Error())
 	}
-
+	rootIdx := 0
 	req := &DecryptRequest{
+		RootIndex: rootIdx,
 		Roster:    r,
 		Data:      data,
 		Signature: &sig,
 	}
-	idx := rand.Int() % len(r.List)
-	dst := r.List[idx]
-	req.RootIndex = idx
 	reply := &DecryptReply{}
-	err = c.SendProtobuf(dst, req, reply)
+	err = c.SendProtobuf(r.List[req.RootIndex], req, reply)
 	if err != nil {
 		return nil, onet.NewClientErrorCode(ErrorParse, err.Error())
 	}

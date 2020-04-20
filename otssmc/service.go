@@ -19,10 +19,7 @@ type OTSSMCService struct {
 
 func init() {
 	onet.RegisterNewService(ServiceName, newOTSSMCService)
-	network.RegisterMessage(&DecryptRequest{})
-	network.RegisterMessage(&DecryptReply{})
-	// network.RegisterMessage(&util.OTSDecryptReqData{})
-	// network.RegisterMessage(&util.DecryptedShare{})
+	network.RegisterMessages(&DecryptRequest{}, &DecryptReply{})
 }
 
 func (s *OTSSMCService) DecryptRequest(req *DecryptRequest) (*DecryptReply, onet.ClientError) {
