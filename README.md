@@ -1,3 +1,6 @@
+### WARNING:
+This repository contains the original OTS implementation that was implemented in 2017-2018 as part of the Calypso research paper. The OTS experiments in the paper are based on this implementation. Additionally, it was a part of the demo that we prepared for our VLDB'21 submission. This version builds on an old version of cothority, which at the moment did not support Byzcoin-style smart contracts, and therefore should only be maintained for archival/historical purposes. A new implementation of the OTS protocol, which also includes the implementation of the _post-quantum OTS (PQ-OTS)_ protocol, based on `cothority/byzcoin` can be found [here](https://github.com/dedis/cothority/tree/ots).
+
 # One-Time Secrets
 
 One-time secrets (OTS) is an implementation of the _on-chain secrets_ protocol. It is
